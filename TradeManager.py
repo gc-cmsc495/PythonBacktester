@@ -10,6 +10,9 @@
 
 # Class Author: Garrett Casey
 
+import DataManager
+import IndicatorLibrary
+
 class TradeManager(object):
 
     def __init__(self):
