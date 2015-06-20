@@ -11,6 +11,8 @@
 
 # Class Author: TBD
 
+import Analysis
+
 class ReportWriter(object):
 
     def __init__(self):
