@@ -9,8 +9,6 @@
 
 # Class Author: Nancy Isaac
 
-import pandas as pd
-
 class DataManager(object):
 
     def __init__(self):

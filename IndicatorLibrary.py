@@ -8,8 +8,6 @@
 
 # Class Author: Pierce Baker
 
-import pandas as pd
-
 class IndicatorLibrary(object):
 
     def __init__(self):
