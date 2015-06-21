@@ -16,3 +16,16 @@ class DataManager(object):
         self.end_date = end
         self.num_periods = num_periods
         
+        self.set_calendar()
+    
+    def set_calendar(self):
+      ## fetch data for GE, which has trade data going back
+      ## to Jan 2, 1962.
+      
+      self.calendar_list = []  ## keep a list for order
+      self.calendar_hash = {}  ## keep a dict for fast lookup
+      ## Or should we used OrderedDict???
+      
+      
+      
+    
