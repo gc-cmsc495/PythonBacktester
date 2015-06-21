@@ -10,10 +10,14 @@
 
 # Class Author: Garrett Casey
 
-import DataManager
-import IndicatorLibrary
+from DataManager import DataManager
+from IndicatorLibrary import IndicatorLibrary
+import ReportWriter
 
 class TradeManager(object):
 
-    def __init__(self):
-        return True
+    def __init__(self, config):
+        self.indicators = IndicatorLibrary(config.get_value('STRATEGY', 'indicators'))
+        self.dm = DataManager(config.get_value('PORTFOLIO','startdate'), config.get_value('PORTFOLIO', 'enddate'), self.indicators.periods_required())
+        
+        

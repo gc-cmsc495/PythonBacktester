@@ -10,8 +10,34 @@
 
 # Class Author: Chris Owens
 
+class Config:
 
-class Config(object):
-
-    def __init__(self, path_to_config_file):
-        return True
+    def __init__(self, path_to_config_file, args):
+        self.path = path_to_config_file
+        self.args = args
+        self.config = {}
+        
+        ## TODO
+        ## Read and parse the file and store in dictionary
+        
+    def value_beta(self, category,name, default=None):
+        """"Function for beta, return static values"""
+        
+        if category == 'PORTFOLIO':
+            if name == 'name': return 'large_cap'
+            if name == 'tickers': return ['AAPL','INTC']
+            if name == 'startdate': return 20150101
+            if name == 'enddate': return 20150131
+        elif category == 'STRATEGY':
+            if name == 'name': return 'high_volume_up_days'
+            if name == 'markout_periods': return [5,10,20]
+            if name == 'period_length': return 'daily'
+            if name == 'indicators': return ['HIGH_VOLUME', 'CLOSE_HIGHER_THAN_OPEN']
+        
+        return default
+        
+    def get_value(self, category, name, default=None):
+        val = self.value_beta(category,name)
+        return val
+        
+      

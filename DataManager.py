@@ -11,5 +11,8 @@
 
 class DataManager(object):
 
-    def __init__(self):
-        return True
+    def __init__(self, start, end, num_periods=0):
+        self.start_date = start
+        self.end_date = end
+        self.num_periods = num_periods
+        
