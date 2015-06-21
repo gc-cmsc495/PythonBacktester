@@ -12,9 +12,11 @@
 
 class Config:
 
-    def __init__(self, path_to_config_file, args):
-        self.path = path_to_config_file
+    def __init__(self, options, args):
+        self.path = options.config
+        self.silent = options.silent
         self.args = args
+
         self.config = {}
         
         ## TODO
@@ -33,6 +35,8 @@ class Config:
             if name == 'markout_periods': return [5,10,20]
             if name == 'period_length': return 'daily'
             if name == 'indicators': return ['HIGH_VOLUME', 'CLOSE_HIGHER_THAN_OPEN']
+        elif category == 'BACKTEST':
+            if name == 'silent': return self.silent
         
         return default
         
