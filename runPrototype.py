@@ -2,9 +2,35 @@ import sys
 import logging
 import random ## only for prototype
 
-## The Config module is the only other module
-## you need to include in the Prototype submission
 from Config import Config  
+
+## 
+## Date: 2015-06-21
+##
+## Description:
+## This is a prototype of the Python Stock Back-tester
+##
+## The user must supply the -c,--config option, which is the location of
+## their configuration file.  For the prototype, this file does not need to 
+## exist.  Default configuration files are provided by the prototype.
+##
+## The user may also turn on the silent mode by passing --silent
+##
+## The application will start and display to the screen (if not silent)
+## and log file the a mock back-test.  Finally, the program writes to the
+## stats_out file, but just a one-line description describing the future
+## contents.
+##
+## See README.txt for more user doc.
+##
+## Team Members:
+## 
+##   Baker, Pierce
+##   Casey, Garrett
+##   Isaac, Nancy
+##   Kelley, Justin
+##   Owens, Chris
+##
 
 log_file_ext = 'log_out.txt'
 stat_file_ext = 'stats_out.txt'
@@ -21,7 +47,7 @@ def setup_backtest():
     opts,args = p.parse_args()
     
     if opts.config is None:
-        print >>sys.stderr, "No config file specified"
+        print >>sys.stderr, "No config file specified. Use --help"
         sys.exit(1)
     
     config = Config(opts, args)
@@ -84,6 +110,7 @@ def runMockBacktest():
                 msg += ' STRATEGY TRIGGER'
             logger.info(msg)
     
+    logger.info('')
     logger.info('Printint Stat Report to: ' + stat_file_name)
     makeMockStatFile(stat_file_name)
     logger.info('')
