@@ -10,6 +10,16 @@
 
 # Class Author: Chris Owens
 
+# Use Case:
+#  1. user provides main application with command-line arguments
+#  2. main application instantiates the Config class as passes command-line arguments
+#  3. Config class parses command-line arguments
+#    3.a. Opens configuration file and parses
+#    3.b. Verifies correctness of parameters and settings
+#  4. Returns OK status or croaks with error
+#  5. Main application and Classes requests settings via Config class immutable getter methods
+#  6. Classes may set SHARABLE values via put method.
+
 class Config:
 
     def __init__(self, options, args):
@@ -30,6 +40,9 @@ class Config:
             if name == 'tickers': return ['AAPL','INTC']
             if name == 'startdate': return 20150101
             if name == 'enddate': return 20150131
+            if name == 'log_file_ext': return 'log_out.txt'
+            if name == 'stat_file_ext': return 'stats_out.txt'
+            if name == 'trade_log_file_ext': return 'trades_out.txt'
         elif category == 'STRATEGY':
             if name == 'name': return 'high_volume_up_days'
             if name == 'markout_periods': return [5,10,20]
@@ -37,6 +50,8 @@ class Config:
             if name == 'indicators': return ['HIGH_VOLUME', 'CLOSE_HIGHER_THAN_OPEN']
         elif category == 'BACKTEST':
             if name == 'silent': return self.silent
+        elif category == 'SHARABLE':
+            return self.config['SHARABLE' + '.' + name]  ## TODO check for existance
         
         return default
         
@@ -44,4 +59,19 @@ class Config:
         val = self.value_beta(category,name)
         return val
         
-      
+    def put(self, name, value):
+        self.config['SHARABLE' + '.' + name] = value
+        
+    def parse(self):
+        ##TODO
+        ## This should be a private function (if possible in python)
+        ## that parses the config file.  There may be a core module available to help
+        pass;
+     
+    def validate (self):
+        ## TODO
+        ## A private function that validates the that minimum parameters were provided
+        ## and that the values are correct
+        pass;
+        
+        
