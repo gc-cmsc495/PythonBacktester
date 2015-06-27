@@ -23,6 +23,7 @@
 #                   3.b.2.a.2. block any future Indicator queries until after future date
 #                   3.b.2.a.3. write results to trade log
 
+from Config import Config
 from DataManager import DataManager
 from IndicatorLibrary import IndicatorLibrary
 
