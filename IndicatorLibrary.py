@@ -2,14 +2,19 @@
 #
 # Description:
 #
-# An indicator is a Boolean function that consumes a series of 
+# An indicator is a Boolean class method that consumes a series of 
 # price or volume information from the Data Class.
 # Some indicators may be composites of other indicators
 
 # Class Author: Pierce Baker
 
-import pprint
- 
+# Use Case:
+#   1. instantiated by TradeManager with DataManager object and indicator_list
+#   2. for indicator (class method) in indicator_list
+#       2.a. calculate Boolean result
+#   3. return intersection of results (AND logic) of indicators in indicator_list
+#
+
 class Indicator(object):
 
     def __init__(self):

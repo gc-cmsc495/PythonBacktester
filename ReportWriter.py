@@ -10,8 +10,16 @@
 # 
 
 # Class Author: TBD
+#
+# Use Case:
+#   1. Instantiated by main application, passed configuration object.
+#   2. Instantiates Analysis class and passes path to trade log (value was set SHARABLE in config by TradeManager)
+#   3. Builds well-formatted text from config settings and Analysis results
+#   4. Outputs results to stat file
+#
 
-import Analysis
+from Analysis import Analysis
+from Config import Config
 
 class ReportWriter(object):
 
