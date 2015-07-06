@@ -15,6 +15,20 @@
 #   3. return intersection of results (AND logic) of indicators in indicator_list
 #
 
+def get_stdv(sample):
+    #first find the mean of the data
+    mean = 0
+    for i in sample:
+        mean += i
+    mean /= len(sample)
+    #with the mean the variance can be found
+    variance = 0
+    for i in sample:
+        variance += (i - mean) ** 2
+    variance /= len(sample)
+    #with the variance the standard deviation can be found
+    return variance ** 0.5
+
 class Indicator(object):
 
     def __init__(self):
