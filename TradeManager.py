@@ -39,7 +39,7 @@ class TradeManager(object):
         max_historical_periods = self.indicators.periods_required()
         self.dm = DataManagerGarrett(logger, start_date,end_date,max_markout_periods,max_historical_periods)
         td = self.dm.trading_dates()
-        v = self.dm.get_value("AAPL", td[2], 5)
+        v = self.dm.get("AAPL", td[2], 5)
         for quote in v:
             print "{0}, {1}".format(quote.date, quote.close)
 
