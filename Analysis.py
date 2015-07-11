@@ -27,23 +27,24 @@
 
 class Analysis(object):
 
-   # def __init__(self, trade_log_path):
-    #    pass;
-class Analysis(object):
-    ''' base analysis class '''
-    __metaclass__ = abc.ABCMeta
+   def __init__(self, trade_log_path):
+       pass;
+    
+# class Analysis(object):
+    # ''' base analysis class '''
+    # __metaclass__ = abc.ABCMeta
 
-    @abc.abstractmethod
-    def calculate(self, timePositions):
-        ''' keep record of the account '''
-        return
+    # @abc.abstractmethod
+    # def calculate(self, timePositions):
+        # ''' keep record of the account '''
+        # return
 
-    @abc.abstractmethod
-    def formatResult(self):
-        ''' print result '''
-        return
+    # @abc.abstractmethod
+    # def formatResult(self):
+        # ''' print result '''
+    # return
 
-class BasicMetric(BaseMetric):
+class BasicMetric(object):
     ''' basic metrics '''
     MAX_TIME_VALUE = 'maxTimeValue'
     MIN_TIME_VALUE = 'minTimeValue'
