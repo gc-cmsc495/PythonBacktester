@@ -30,7 +30,7 @@ import urllib,logging,Util
 class Quote(object):
 
     def __init__(self, date, open, high, low, close, volume):
-        self.date, self.open, self.high, self.low, self.close, self.volume = date, open, high, low, close, volume
+        self.date, self.open, self.high, self.low, self.close, self.volume = date, float(open), float(high), float(low), float(close), int(volume)
 
 class HistoricalQuotes(object):
 
@@ -120,6 +120,7 @@ class DataManagerGarrett(object):
         if (date < self.actual_start_date): pass ## Do something
 
         if (not ticker in self.tickers):
+            self.logger.info("Fetching historical data from yahoo for:" + ticker)
             self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar_list[0], self.calendar_list[-1])
 
         input_date_index = self.calendar_hash[int(date)]

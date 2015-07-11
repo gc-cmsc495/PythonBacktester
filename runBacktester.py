@@ -67,6 +67,7 @@ def runBacktest():
     config, logger = setup_backtest()
     tm = TradeManager(config, logger)
     logger.info('Hello World')
+    tm.run()
 
     
 

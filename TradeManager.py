@@ -31,18 +31,13 @@ class TradeManager(object):
 
     def __init__(self, config, logger):
         self.config = config
-        self.indicators = IndicatorLibrary(config.get_value('STRATEGY', 'indicators'))
+        self.strategy = IndicatorLibrary(config.get_value('STRATEGY', 'indicators'))
         
         start_date = config.get_value('PORTFOLIO','startdate')
         end_date = config.get_value('PORTFOLIO', 'enddate')
         max_markout_periods = max(config.get_value('STRATEGY', 'markout_periods'))
-        max_historical_periods = self.indicators.periods_required()
+        max_historical_periods = self.strategy.periods_required()
         self.dm = DataManagerGarrett(logger, start_date,end_date,max_markout_periods,max_historical_periods)
-        td = self.dm.trading_dates()
-        v = self.dm.get("AAPL", td[2], 5)
-        for quote in v:
-            print "{0}, {1}".format(quote.date, quote.close)
-
         self.__trade_log_fn()
         
     def __trade_log_fn(self):
@@ -54,3 +49,9 @@ class TradeManager(object):
         self.config.put('trade_log_file_name', fn)
         
         
+    def run(self):
+        for trade_date in self.dm.trading_dates():
+            for ticker in self.config.get_value("PORTFOLIO", "tickers"):
+                if (self.strategy.calc(self.dm, ticker, trade_date)):
+                    print "We have a trade in {0}, {1}".format(ticker, trade_date)
+                    pass

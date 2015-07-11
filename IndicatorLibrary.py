@@ -15,6 +15,13 @@
 #   3. return intersection of results (AND logic) of indicators in indicator_list
 #
 
+from DataManagerGarrett import DataManagerGarrett
+
+def mean(l):
+    ## see http://stackoverflow.com/questions/7716331/calculating-arithmetic-mean-average-in-python
+    return float(sum(l))/len(l) if len(l) > 0 else float('nan')
+
+
 def get_stdv(sample):
     #first find the mean of the data
     mean = 0
@@ -37,18 +44,32 @@ class Indicator(object):
     def periods_required(self):
         return self.max_history
         
+    def calc(self, DataManager, ticker, date):
+        return True
+        
 class High_Volume(Indicator):
 
     def __init__(self):
         Indicator.__init__(self)
         self.max_history = 20
+    
+    def calc(self, DataManager, ticker, date):
+        quote_list = DataManager.get(ticker, date, -20)
+        quote = quote_list.pop()
+        hist_volume = []
+        for q in quote_list[-20:]:
+            hist_volume.append(q.volume)
+        return quote.volume > mean(hist_volume)
 
 class Close_Higher_Than_Open(Indicator):
 
     def __init__(self):
         Indicator.__init__(self)
         
-      
+    def calc(self, DataManager, ticker, date):
+        quote = DataManager.get(ticker, date)
+        return quote.close > quote.open
+     
 def new_high_volume():
     return High_Volume()
 
@@ -73,4 +94,10 @@ class IndicatorLibrary(object):
         for indicator in self.indicators:
             max_history = max(max_history, indicator.periods_required())
         return max_history
+    
+    def calc(self, dm, ticker, today):
+        for indicator in self.indicators:
+            if not indicator.calc(dm,ticker,today):
+                return False
+        return True
         
