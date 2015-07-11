@@ -74,6 +74,7 @@ class DataManagerGarrett(object):
         self.calendar_hash = {}  ## keep a dict for fast lookup
 
         start_date_index        = -1
+        end_date_index          = -1
         self.actual_start_date  = 0
         self.actual_end_date    = 0
 
@@ -83,16 +84,24 @@ class DataManagerGarrett(object):
             date = quote.date
             if (start_date_index == -1 and date >= start_date): start_date_index = i
             if (start_date_index != -1):
-                if date > end_date: break
-                self.calendar_list.append(date)
-                self.calendar_hash[date] = i
-                i += 1
-
-        self.actual_start_date = self.calendar_list[0]
-        self.actual_end_date   = self.calendar_list[-1]
-        self.logger.info("Setting trade dates to {0} - {1}".format(self.actual_start_date,self.actual_end_date))
+                if date > end_date: 
+                    end_date_index = i-1
+                    break
+            i += 1
         
-        self.end_date_index = len(self.calendar_list) - 1
+        if start_date_index - pre_buffer < 0: pass ## WE ARE OUT OF BOUNDS
+        if end_date_index + post_buffer >= len(cal.data): pass ## WE ARE OUT OF BOUNDS AGAIN
+        
+        k=0
+        for i in range(start_date_index - pre_buffer, end_date_index + post_buffer):
+            date = cal.data[i].date
+            self.calendar_list.append(date);
+            self.calendar_hash[date] = k
+            k += 1
+
+        self.actual_start_date = cal.data[start_date_index].date
+        self.actual_end_date   = cal.data[end_date_index].date
+        self.logger.info("Setting trade dates to {0} - {1}".format(self.actual_start_date,self.actual_end_date))
         self.tickers = {} ## Dictionary to hold quotes
      
     def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
@@ -102,17 +111,16 @@ class DataManagerGarrett(object):
         self.set_calendar(start_date, end_date, pre_buffer, post_buffer)
     
     def trading_dates(self, asHash = False):
-        if (asHash):
-            return self.calendar_hash
-        else :
-            return self.calendar_list
+        start_date_index = self.calendar_hash[self.actual_start_date]
+        end_date_index   = self.calendar_hash[self.actual_end_date]
+        return self.calendar_list[start_date_index:(end_date_index+1)]
         
     def get_value(self, ticker, date, periods=0):
         if (date > self.actual_end_date): pass ## Do something
         if (date < self.actual_start_date): pass ## Do something
 
         if (not ticker in self.tickers):
-            self.tickers[ticker] = HistoricalQuotes(ticker, self.actual_start_date, self.actual_end_date)
+            self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar_list[0], self.calendar_list[-1])
 
         input_date_index = self.calendar_hash[int(date)]
         calc_date_index = input_date_index + periods
