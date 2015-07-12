@@ -1,0 +1,6 @@
+INFO:backtester:Creating trading calendar...
+INFO:backtester:Setting trade dates to 20150102 - 20150130
+INFO:backtester:Hello World
+INFO:backtester:Writing to 20150101.20150131.high_volume_up_days.trades_out.txt
+INFO:backtester:Fetching historical data from yahoo for:AAPL
+INFO:backtester:Fetching historical data from yahoo for:INTC

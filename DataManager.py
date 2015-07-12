@@ -85,7 +85,7 @@ class TradeCalendar(object):
                     end_date_index = i-1
                     break
             i += 1
-
+        import pdb; pdb.set_trace()
         if int(start_date_index) > int(end_date_index):
             raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
 
@@ -113,35 +113,42 @@ class TradeCalendar(object):
         
 
 class DataManager(object):  
-     
+
+
     def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
         
         if int(start_date) > int(end_date):
             raise RuntimeError('Invalid start date: start date is greater than end date')
 
         self.logger = logger
-        TradeCalendar(start_date, end_date, pre_buffer, post_buffer)
+        self.calendar = TradeCalendar(logger, start_date, end_date, pre_buffer, post_buffer)
         self.tickers = {} ## Dictionary to hold quotes
     
     def trading_dates(self, asHash = False):
-        start_date_index = self.calendar_hash[self.actual_start_date]
-        end_date_index   = self.calendar_hash[self.actual_end_date]
-        return self.calendar_list[start_date_index:(end_date_index+1)]
+        start_date_index = self.calendar.calendar_hash[self.calendar.actual_start_date]
+        end_date_index   = self.calendar.calendar_hash[self.calendar.actual_end_date]
+        return self.calendar.calendar_list[start_date_index:(end_date_index+1)]
+
+    def date_by_offset(self, anchor, offset):
+        index = self.calendar.calendar_hash[anchor]
+        return self.calendar.calendar_list[index + offset]
+
         
     def get(self, ticker, date, periods=0):
-        if (date > self.actual_end_date): 
+        if (date > self.calendar.actual_end_date): 
+            import pdb; pdb.set_trace()
             raise RuntimeError('Invalid date: date is greater than actual_end_date') 
-        if (date < self.actual_start_date):
+        if (date < self.calendar.actual_start_date):
             raise RuntimeError('Invalid date: date is less than actual_start_date') 
 
         if (not ticker in self.tickers):
             self.logger.info("Fetching historical data from yahoo for:" + ticker)
-            self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar_list[0], self.calendar_list[-1])
+            self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar.calendar_list[0], self.calendar.calendar_list[-1])
 
-        input_date_index = self.calendar_hash[int(date)]
+        input_date_index = self.calendar.calendar_hash[int(date)]
         calc_date_index = input_date_index + periods
         
-        if calc_date_index > len(self.calendar_list):
+        if calc_date_index > len(self.calendar.calendar_list):
             raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the last index) in the calendar_list")
         if calc_date_index < 0: 
             raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the first index) in the calendar_list")
