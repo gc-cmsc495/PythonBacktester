@@ -18,13 +18,13 @@
 #   4. Outputs results to stat file
 #
 
-from AnalysisGarrett import AnalysisGarrett
+from Analysis import Analysis
 from Config import Config
 
 class ReportWriter(object):
 
     def __init__(self, config, out_fn):
-        self.analysis = AnalysisGarrett(config.get_value("SHARABLE", "trade_log_file_name"))
+        self.analysis = Analysis(config.get_value("SHARABLE", "trade_log_file_name"))
         pass
     
     def write(self):

@@ -24,7 +24,7 @@
 #                   3.b.2.a.3. write results to trade log
 
 from Config import Config
-from DataManagerGarrett import DataManagerGarrett
+from DataManager import DataManager
 from IndicatorLibrary import IndicatorLibrary
 
 class TradeManager(object):
@@ -38,7 +38,7 @@ class TradeManager(object):
         end_date = config.get_value('PORTFOLIO', 'enddate')
         max_markout_periods = max(config.get_value('STRATEGY', 'markout_periods'))
         max_historical_periods = self.strategy.periods_required()
-        self.dm = DataManagerGarrett(logger, start_date,end_date,max_markout_periods,max_historical_periods)
+        self.dm = DataManager(logger, start_date,end_date,max_markout_periods,max_historical_periods)
         self.__trade_log_fn()
         
     def __trade_log_fn(self):
