@@ -15,7 +15,7 @@
 #   3. return intersection of results (AND logic) of indicators in indicator_list
 #
 
-from DataManagerGarrett import DataManagerGarrett
+from DataManager import DataManager
 
 def mean(l):
     ## see http://stackoverflow.com/questions/7716331/calculating-arithmetic-mean-average-in-python

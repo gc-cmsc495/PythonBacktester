@@ -42,7 +42,7 @@ class HistoricalQuotes(object):
         
         start_month = str(int(start_month) - 1)
         end_month   = str(int(end_month) - 1)
-        
+
         self.data = [];
         
         url_string = "http://ichart.finance.yahoo.com/table.csv?g=d&s={0}".format(symbol)
@@ -59,16 +59,12 @@ class HistoricalQuotes(object):
                 open,high,low,close = [x*factor for x in [open,high,low,close]]
             ds = int(ds.translate(None, '-'))
             self.data.append(Quote(ds, open, high, low, close, volume))
-    
 
-class DataManagerGarrett(object):
+class TradeCalendar(object):
     
-    def set_calendar(self, start_date, end_date, pre_buffer, post_buffer):
-        ## fetch data for GE, which has trade data going back
-        ## to Util.DEFAULT_START_DATE.
-      
-      
-        #TODO: add error checking.  Possibly move to own Class
+    def __init__(self, logger, start_date, end_date, pre_buffer, post_buffer):
+    
+        self.logger = logger
         self.logger.info("Creating trading calendar...")
         self.calendar_list = []  ## keep a list for order
         self.calendar_hash = {}  ## keep a dict for fast lookup
@@ -77,6 +73,7 @@ class DataManagerGarrett(object):
         end_date_index          = -1
         self.actual_start_date  = 0
         self.actual_end_date    = 0
+        
 
         cal = HistoricalQuotes("GE", Util.DEFAULT_START_DATE, Util.DEFAULT_END_DATE)
         i=0
@@ -88,9 +85,20 @@ class DataManagerGarrett(object):
                     end_date_index = i-1
                     break
             i += 1
+
+        if int(start_date_index) > int(end_date_index):
+            raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
+
+        if int(start_date_index == -1):
+            raise RuntimeError('start date index should not be -1')
+        if int(end_date_index == -1):
+            raise RuntimeError('end date index should not be -1')
+    
         
-        if start_date_index - pre_buffer < 0: pass ## WE ARE OUT OF BOUNDS
-        if end_date_index + post_buffer >= len(cal.data): pass ## WE ARE OUT OF BOUNDS AGAIN
+        if start_date_index - pre_buffer < 0: 
+            raise IndexError("out of bounds: start_date_index-pre_buffer is prior to the beginning of the list")
+        if end_date_index + post_buffer >= len(cal.data): 
+            raise IndexError("out of bounds: end_index+post_buffer is prior to the beginning of the list")
         
         k=0
         for i in range(start_date_index - pre_buffer, end_date_index + post_buffer):
@@ -102,13 +110,18 @@ class DataManagerGarrett(object):
         self.actual_start_date = cal.data[start_date_index].date
         self.actual_end_date   = cal.data[end_date_index].date
         self.logger.info("Setting trade dates to {0} - {1}".format(self.actual_start_date,self.actual_end_date))
-        self.tickers = {} ## Dictionary to hold quotes
+        
+
+class DataManager(object):  
      
     def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
-        ## TODO: error checking
         
+        if int(start_date) > int(end_date):
+            raise RuntimeError('Invalid start date: start date is greater than end date')
+
         self.logger = logger
-        self.set_calendar(start_date, end_date, pre_buffer, post_buffer)
+        TradeCalendar(start_date, end_date, pre_buffer, post_buffer)
+        self.tickers = {} ## Dictionary to hold quotes
     
     def trading_dates(self, asHash = False):
         start_date_index = self.calendar_hash[self.actual_start_date]
@@ -116,8 +129,10 @@ class DataManagerGarrett(object):
         return self.calendar_list[start_date_index:(end_date_index+1)]
         
     def get(self, ticker, date, periods=0):
-        if (date > self.actual_end_date): pass ## Do something
-        if (date < self.actual_start_date): pass ## Do something
+        if (date > self.actual_end_date): 
+            raise RuntimeError('Invalid date: date is greater than actual_end_date') 
+        if (date < self.actual_start_date):
+            raise RuntimeError('Invalid date: date is less than actual_start_date') 
 
         if (not ticker in self.tickers):
             self.logger.info("Fetching historical data from yahoo for:" + ticker)
@@ -126,8 +141,10 @@ class DataManagerGarrett(object):
         input_date_index = self.calendar_hash[int(date)]
         calc_date_index = input_date_index + periods
         
-        if calc_date_index > len(self.calendar_list): pass ## Do Something
-        if calc_date_index < 0: pass ## Do Something
+        if calc_date_index > len(self.calendar_list):
+            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the last index) in the calendar_list")
+        if calc_date_index < 0: 
+            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the first index) in the calendar_list")
         
         if (input_date_index > calc_date_index):
             return self.tickers[ticker].data[calc_date_index:input_date_index+1]
@@ -136,19 +153,3 @@ class DataManagerGarrett(object):
         else:
             return self.tickers[ticker].data[input_date_index]
             
-    
-    
-        
-      
-'''    
-if __name__ == '__main__':
-#    import pdb; pdb.set_trace()
-    q = DataManager('aapl','2011-01-01')              # download year to date Apple data
-    print q                                          # print it out
-    q = DataManager('orcl','2011-02-01','2011-02-28') # download Oracle data for February 2011
-    q.write_csv('orcl.csv')                          # save it to disk
-    q = Quote()                                      # create a generic quote object
-    q.read_csv('orcl.csv')                           # populate it with our previously saved data
-    print q   
-'''
-

@@ -25,100 +25,131 @@
 #   5. IndicatorLibrary queries DataManager for serial price and/or volume data
 #       5.a. returns iterator object with the time boundaries defined by the Indicator function
 
-import os, sys
-import urllib,time,datetime
+import urllib,logging,Util
 
 class Quote(object):
 
-    DATE_FMT = '%Y-%m-%d'
-    TIME_FMT = '%H:%M:%S'
+    def __init__(self, date, open, high, low, close, volume):
+        self.date, self.open, self.high, self.low, self.close, self.volume = date, float(open), float(high), float(low), float(close), int(volume)
 
-    def __init__(self):
-        self.symbol = ''
-        self.date,self.time,self.open_,self.high,self.low,self.close,self.volume = ([] for _ in range(7))
+class HistoricalQuotes(object):
 
-    def append(self,dt,open_,high,low,close,volume):
-        self.date.append(dt.date())
-        self.time.append(dt.time())
-    	self.open_.append(float(open_))
-    	self.high.append(float(high))
-    	self.low.append(float(low))
-    	self.close.append(float(close))
-    	self.volume.append(int(volume))
+    def __init__(self, symbol, start_date, end_date):
+        
+        symbol = symbol.upper()
+        start_year,start_month,start_day = Util.parse_date(start_date)
+        end_year,end_month,end_day = Util.parse_date(end_date)
+        
+        start_month = str(int(start_month) - 1)
+        end_month   = str(int(end_month) - 1)
 
-
-    def to_csv(self):
-        return ''.join(["{0},{1},{2},{3:.2f},{4:.2f},{5:.2f},{6:.2f},{7}\n".format(self.symbol,
-                    self.date[bar].strftime('%Y-%m-%d'),self.time[bar].strftime('%H:%M:%S'),
-                    self.open_[bar],self.high[bar],self.low[bar],self.close[bar],self.volume[bar])
-                    for bar in xrange(len(self.close))])
-
-    def write_csv(self,filename):
-        with open(filename,'w') as f:
-            f.write(self.to_csv())
-
-    def read_csv(self,filename):
-        self.symbol = ''
-        self.date,self.time,self.open_,self.high,self.low,self.close,self.volume = ([] for _ in range(7))
-        for line in open(filename,'r'):
-            symbol,ds,ts,open_,high,low,close,volume = line.rstrip().split(',')
-            self.symbol = symbol
-            dt = datetime.datetime.strptime(ds+' '+ts,self.DATE_FMT+' '+self.TIME_FMT)
-            self.append(dt,open_,high,low,close,volume)
-        return True
-
-    def __repr__(self):
-        return self.to_csv()
-
-class DataManager(Quote):
-
-    def __init__(self,symbol,start_date,end_date=datetime.date.today().isoformat()):
-        super(DataManager,self).__init__()
-        self.symbol = symbol.upper()
-        start_year,start_month,start_day = start_date.split('-')
-        start_month = str(int(start_month)-1)
-        end_year,end_month,end_day = end_date.split('-')
-        end_month = str(int(end_month)-1)
-        url_string = "http://ichart.finance.yahoo.com/table.csv?s={0}".format(symbol)
+        self.data = [];
+        
+        url_string = "http://ichart.finance.yahoo.com/table.csv?g=d&s={0}".format(symbol)
         url_string += "&a={0}&b={1}&c={2}".format(start_month,start_day,start_year)
         url_string += "&d={0}&e={1}&f={2}".format(end_month,end_day,end_year)
+        
         csv = urllib.urlopen(url_string).readlines()
         csv.reverse()
         for bar in xrange(0,len(csv)-1):
-            ds,open_,high,low,close,volume,adjc = csv[bar].rstrip().split(',')
-            open_,high,low,close,adjc = [float(x) for x in [open_,high,low,close,adjc]]
+            ds,open,high,low,close,volume,adjc = csv[bar].rstrip().split(',')
+            open,high,low,close,adjc = [float(x) for x in [open,high,low,close,adjc]]
             if close != adjc:
                 factor = adjc/close
-                open_,high,low,close = [x*factor for x in [open_,high,low,close]]
-            dt = datetime.datetime.strptime(ds,'%Y-%m-%d')
-            self.append(dt,open_,high,low,close,volume)
+                open,high,low,close = [x*factor for x in [open,high,low,close]]
+            ds = int(ds.translate(None, '-'))
+            self.data.append(Quote(ds, open, high, low, close, volume))
+
+class TradeCalendar(object):
     
-    def set_calendar(self):
-      ## fetch data for GE, which has trade data going back
-      ## to Jan 2, 1962.
-      
+    def __init__(self, logger, start_date, end_date, pre_buffer, post_buffer):
+    
+        self.logger = logger
+        self.logger.info("Creating trading calendar...")
         self.calendar_list = []  ## keep a list for order
         self.calendar_hash = {}  ## keep a dict for fast lookup
-      ## Or should we used OrderedDict???
-      
-    def get_value(ticker, type, date):
-        ## basic getter method to return a data for a single ticker/day
-        ## example get_value('AAPL', 'close', 20150602)
-        pass;
-    
-    def get_value(ticker, type, date, periods_back):
-        pass;
-        
-      
-'''    
-if __name__ == '__main__':
-#    import pdb; pdb.set_trace()
-    q = DataManager('aapl','2011-01-01')              # download year to date Apple data
-    print q                                          # print it out
-    q = DataManager('orcl','2011-02-01','2011-02-28') # download Oracle data for February 2011
-    q.write_csv('orcl.csv')                          # save it to disk
-    q = Quote()                                      # create a generic quote object
-    q.read_csv('orcl.csv')                           # populate it with our previously saved data
-    print q   
-'''
 
+        start_date_index        = -1
+        end_date_index          = -1
+        self.actual_start_date  = 0
+        self.actual_end_date    = 0
+        
+
+        cal = HistoricalQuotes("GE", Util.DEFAULT_START_DATE, Util.DEFAULT_END_DATE)
+        i=0
+        for quote in cal.data:
+            date = quote.date
+            if (start_date_index == -1 and date >= start_date): start_date_index = i
+            if (start_date_index != -1):
+                if date > end_date: 
+                    end_date_index = i-1
+                    break
+            i += 1
+
+        if int(start_date_index) > int(end_date_index):
+            raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
+
+        if int(start_date_index == -1):
+            raise RuntimeError('start date index should not be -1')
+        if int(end_date_index == -1):
+            raise RuntimeError('end date index should not be -1')
+    
+        
+        if start_date_index - pre_buffer < 0: 
+            raise IndexError("out of bounds: start_date_index-pre_buffer is prior to the beginning of the list")
+        if end_date_index + post_buffer >= len(cal.data): 
+            raise IndexError("out of bounds: end_index+post_buffer is prior to the beginning of the list")
+        
+        k=0
+        for i in range(start_date_index - pre_buffer, end_date_index + post_buffer):
+            date = cal.data[i].date
+            self.calendar_list.append(date);
+            self.calendar_hash[date] = k
+            k += 1
+
+        self.actual_start_date = cal.data[start_date_index].date
+        self.actual_end_date   = cal.data[end_date_index].date
+        self.logger.info("Setting trade dates to {0} - {1}".format(self.actual_start_date,self.actual_end_date))
+        
+
+class DataManager(object):  
+     
+    def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
+        
+        if int(start_date) > int(end_date):
+            raise RuntimeError('Invalid start date: start date is greater than end date')
+
+        self.logger = logger
+        TradeCalendar(start_date, end_date, pre_buffer, post_buffer)
+        self.tickers = {} ## Dictionary to hold quotes
+    
+    def trading_dates(self, asHash = False):
+        start_date_index = self.calendar_hash[self.actual_start_date]
+        end_date_index   = self.calendar_hash[self.actual_end_date]
+        return self.calendar_list[start_date_index:(end_date_index+1)]
+        
+    def get(self, ticker, date, periods=0):
+        if (date > self.actual_end_date): 
+            raise RuntimeError('Invalid date: date is greater than actual_end_date') 
+        if (date < self.actual_start_date):
+            raise RuntimeError('Invalid date: date is less than actual_start_date') 
+
+        if (not ticker in self.tickers):
+            self.logger.info("Fetching historical data from yahoo for:" + ticker)
+            self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar_list[0], self.calendar_list[-1])
+
+        input_date_index = self.calendar_hash[int(date)]
+        calc_date_index = input_date_index + periods
+        
+        if calc_date_index > len(self.calendar_list):
+            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the last index) in the calendar_list")
+        if calc_date_index < 0: 
+            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the first index) in the calendar_list")
+        
+        if (input_date_index > calc_date_index):
+            return self.tickers[ticker].data[calc_date_index:input_date_index+1]
+        elif(input_date_index < calc_date_index):
+            return self.tickers[ticker].data[input_date_index:calc_date_index+1]
+        else:
+            return self.tickers[ticker].data[input_date_index]
+            
