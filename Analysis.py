@@ -28,7 +28,7 @@ import Util
 import pprint
 import math
 
-class AnalysisGarrett(object):
+class Analysis(object):
     def __init__(self, trade_log_path):
         print "Trade log is at " + trade_log_path
         
