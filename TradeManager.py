@@ -33,7 +33,7 @@ class TradeManager(object):
         self.config = config
         self.logger = logger
         self.strategy = IndicatorLibrary(config.get_value('STRATEGY', 'indicators'))
-        
+        import pdb; pdb.set_trace()
         start_date = config.get_value('PORTFOLIO','startdate')
         end_date = config.get_value('PORTFOLIO', 'enddate')
         max_markout_periods = max(config.get_value('STRATEGY', 'markout_periods'))

@@ -85,7 +85,6 @@ class TradeCalendar(object):
                     end_date_index = i-1
                     break
             i += 1
-        import pdb; pdb.set_trace()
         if int(start_date_index) > int(end_date_index):
             raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
 
@@ -136,7 +135,6 @@ class DataManager(object):
         
     def get(self, ticker, date, periods=0):
         if (date > self.calendar.actual_end_date): 
-            import pdb; pdb.set_trace()
             raise RuntimeError('Invalid date: date is greater than actual_end_date') 
         if (date < self.calendar.actual_start_date):
             raise RuntimeError('Invalid date: date is less than actual_start_date') 
