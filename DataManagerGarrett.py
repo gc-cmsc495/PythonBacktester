@@ -114,6 +114,10 @@ class DataManagerGarrett(object):
         start_date_index = self.calendar_hash[self.actual_start_date]
         end_date_index   = self.calendar_hash[self.actual_end_date]
         return self.calendar_list[start_date_index:(end_date_index+1)]
+
+    def date_by_offset(self, anchor, offset):
+        index = self.calendar_hash[anchor]
+        return self.calendar_list[index + offset]
         
     def get(self, ticker, date, periods=0):
         if (date > self.actual_end_date): pass ## Do something

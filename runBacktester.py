@@ -67,7 +67,10 @@ def runBacktest():
     config, logger = setup_backtest()
     tm = TradeManager(config, logger)
     logger.info('Hello World')
-    tm.run()
+    if tm.run():
+        rw = ReportWriter(config, stat_file_name)
+        rw.write()
+        
 
     
 

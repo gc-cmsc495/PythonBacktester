@@ -51,7 +51,7 @@ class Config:
         elif category == 'BACKTEST':
             if name == 'silent': return self.silent
         elif category == 'SHARABLE':
-            return self.config['SHARABLE' + '.' + name]  ## TODO check for existance
+            return self.config['SHARABLE' + '.' + name]  ## TODO check for existence
         
         return default
         

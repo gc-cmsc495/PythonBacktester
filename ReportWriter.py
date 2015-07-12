@@ -18,10 +18,20 @@
 #   4. Outputs results to stat file
 #
 
-from Analysis import Analysis
+from AnalysisGarrett import AnalysisGarrett
 from Config import Config
 
 class ReportWriter(object):
 
-    def __init__(self):
-        return True
+    def __init__(self, config, out_fn):
+        self.analysis = AnalysisGarrett(config.get_value("SHARABLE", "trade_log_file_name"))
+        pass
+    
+    def write(self):
+        for mo_period in self.analysis.get_mo_periods():
+            for ticker in self.analysis.get_tickers():
+                count = self.analysis.count(mo_period, ticker)
+                mean = self.analysis.mean(mo_period, ticker)
+                tstat= self.analysis.tstat(mo_period, ticker)
+                sharpe= self.analysis.sharpe(mo_period, ticker)
+                print "{0} {1} {2} {3} {4} {5}".format(mo_period, ticker, count, mean, tstat, sharpe)
