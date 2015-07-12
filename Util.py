@@ -9,6 +9,7 @@ def parse_date(date, asList=False):
     return parsed_date
     
 def get_header_and_columns(filehandle, delim=' ', strip='', chomp=True):
+    ## strip option not supported yet.
     header = filehandle.readline()
     if chomp: header.rstrip('\n')
     columns = header.split(delim)
