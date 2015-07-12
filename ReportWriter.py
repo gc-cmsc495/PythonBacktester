@@ -13,7 +13,7 @@
 #
 # Use Case:
 #   1. Instantiated by main application, passed configuration object.
-#   2. Instantiates Analysis class and passes path to trade log (value was set SHARABLE in config by TradeManager)
+#   2. Instantiates Analysis class and passes path to trade log (value was set SHAREABLE in config by TradeManager)
 #   3. Builds well-formatted text from config settings and Analysis results
 #   4. Outputs results to stat file
 #
@@ -24,7 +24,7 @@ from Config import Config
 class ReportWriter(object):
 
     def __init__(self, config, out_fn):
-        self.analysis = Analysis(config.get_value("SHARABLE", "trade_log_file_name"))
+        self.analysis = Analysis(config.get_value("SHAREABLE", "trade_log_file_name"))
         pass
     
     def write(self):

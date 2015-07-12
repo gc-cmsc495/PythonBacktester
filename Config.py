@@ -18,7 +18,7 @@
 #    3.b. Verifies correctness of parameters and settings
 #  4. Returns OK status or croaks with error
 #  5. Main application and Classes requests settings via Config class immutable getter methods
-#  6. Classes may set SHARABLE values via put method.
+#  6. Classes may set SHAREABLE values via put method.
 
 class Config:
 
@@ -50,8 +50,8 @@ class Config:
             if name == 'indicators': return ['HIGH_VOLUME', 'CLOSE_HIGHER_THAN_OPEN']
         elif category == 'BACKTEST':
             if name == 'silent': return self.silent
-        elif category == 'SHARABLE':
-            return self.config['SHARABLE' + '.' + name]  ## TODO check for existence
+        elif category == 'SHAREABLE':
+            return self.config['SHAREABLE' + '.' + name]  ## TODO check for existence
         
         return default
         
@@ -60,7 +60,7 @@ class Config:
         return val
         
     def put(self, name, value):
-        self.config['SHARABLE' + '.' + name] = value
+        self.config['SHAREABLE' + '.' + name] = value
         
     def parse(self):
         ##TODO
