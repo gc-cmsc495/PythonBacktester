@@ -7,9 +7,6 @@
 # Statistics include: mean return, standard deviation, t-statistc or sharpe ratio,
 # cumulative return, max and min returns, skew, kurtosis and other statistics.
 
-# QUESTION: Should the Analysis class also provide generic math functions such
-# as mean, median, sum, stdev, so it can be used by IndicatorLibrary?
-
 # Class Authors: Garrett Casey and Justin Kelley
 
 # Use Case:
