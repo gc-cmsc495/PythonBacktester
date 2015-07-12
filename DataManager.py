@@ -71,9 +71,11 @@ class TradeCalendar(object):
 
         start_date_index        = -1
         end_date_index          = -1
+        
         self.actual_start_date  = 0
         self.actual_end_date    = 0
-        
+        self.min_date           = 0
+        self.max_date           = 0
 
         cal = HistoricalQuotes("GE", Util.DEFAULT_START_DATE, Util.DEFAULT_END_DATE)
         i=0
@@ -85,7 +87,7 @@ class TradeCalendar(object):
                     end_date_index = i-1
                     break
             i += 1
-        import pdb; pdb.set_trace()
+
         if int(start_date_index) > int(end_date_index):
             raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
 
@@ -109,6 +111,9 @@ class TradeCalendar(object):
 
         self.actual_start_date = cal.data[start_date_index].date
         self.actual_end_date   = cal.data[end_date_index].date
+        self.min_date          = self.calendar_list[0]
+        self.max_date          = self.calendar_list[-1]
+        self.logger.info("Max and Min dates are {0} and {1}".format(self.min_date, self.max_date))
         self.logger.info("Setting trade dates to {0} - {1}".format(self.actual_start_date,self.actual_end_date))
         
 
@@ -135,11 +140,10 @@ class DataManager(object):
 
         
     def get(self, ticker, date, periods=0):
-        if (date > self.calendar.actual_end_date): 
-            import pdb; pdb.set_trace()
-            raise RuntimeError('Invalid date: date is greater than actual_end_date') 
-        if (date < self.calendar.actual_start_date):
-            raise RuntimeError('Invalid date: date is less than actual_start_date') 
+        if (date > self.calendar.max_date): 
+            raise RuntimeError('Invalid date: date is greater than max date of ' + self.calendar.max_date) 
+        if (date < self.calendar.min_date):
+            raise RuntimeError('Invalid date: date is less than min date of ' + self.calendar.min_date) 
 
         if (not ticker in self.tickers):
             self.logger.info("Fetching historical data from yahoo for:" + ticker)
