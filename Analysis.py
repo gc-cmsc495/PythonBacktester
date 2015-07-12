@@ -10,7 +10,7 @@
 # QUESTION: Should the Analysis class also provide generic math functions such
 # as mean, median, sum, stdev, so it can be used by IndicatorLibrary?
 
-# Class Author: Justin Kelley
+# Class Authors: Garrett Casey and Justin Kelley
 
 # Use Case:
 # 1. TradeManager writes to log file for each trade
