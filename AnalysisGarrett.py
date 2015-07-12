@@ -30,7 +30,7 @@ import math
 
 class AnalysisGarrett(object):
     def __init__(self, trade_log_path):
-        print "Trade log is at " + trade_log_path\
+        print "Trade log is at " + trade_log_path
         
         stats = {}
         tickers = {}
