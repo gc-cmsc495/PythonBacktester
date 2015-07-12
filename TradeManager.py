@@ -31,6 +31,7 @@ class TradeManager(object):
 
     def __init__(self, config, logger):
         self.config = config
+        self.logger = logger
         self.strategy = IndicatorLibrary(config.get_value('STRATEGY', 'indicators'))
         
         start_date = config.get_value('PORTFOLIO','startdate')
@@ -46,12 +47,22 @@ class TradeManager(object):
         name = self.config.get_value('STRATEGY', 'name')
         ext = self.config.get_value('PORTFOLIO', 'trade_log_file_ext')
         fn = ".".join([str(start_date),str(end_date),name,ext])
+        self.trade_log_name = fn
         self.config.put('trade_log_file_name', fn)
         
         
     def run(self):
-        for trade_date in self.dm.trading_dates():
-            for ticker in self.config.get_value("PORTFOLIO", "tickers"):
-                if (self.strategy.calc(self.dm, ticker, trade_date)):
-                    print "We have a trade in {0}, {1}".format(ticker, trade_date)
-                    pass
+        
+        with open(self.trade_log_name, 'w') as trade_log:
+            trade_log.write('date,ticker,mo_period,entry_price,exit_price,exit_date\n')
+            self.logger.info("Writing to " + self.trade_log_name)
+            for trade_date in self.dm.trading_dates():
+                for ticker in self.config.get_value("PORTFOLIO", "tickers"):
+                    if (self.strategy.calc(self.dm, ticker, trade_date)):
+                        today_price = self.dm.get(ticker, trade_date).close
+                        for mo_period in self.config.get_value('STRATEGY', 'markout_periods'):
+                            future_date = self.dm.date_by_offset(trade_date, mo_period)
+                            ## TODO prevent overlapping of dates so we have independent dates
+                            future_price = self.dm.get(ticker, future_date).close
+                            trade_log.write("{0},{1},{2},{3},{4},{5}\n".format(trade_date,ticker,mo_period,today_price,future_price,future_date))
+        return True
