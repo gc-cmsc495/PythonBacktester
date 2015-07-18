@@ -159,7 +159,13 @@ class DataManager(object):
             if not self.tickers[ticker].data:
                 self.logger.critical("DataManager could not get Yahoo quotes for ticker {0}".format(ticker))
                 exit(1)
-            
+            if self.tickers[ticker].data[0].date > self.calendar.calendar_list[0]:
+                self.logger.critical("There is not enough to run analysis on {0}, earliest date {1} is greater than {2}".format(ticker,self.tickers[ticker].data[0].date, self.calendar.calendar_list[0]))
+                exit(1)
+            if self.tickers[ticker].data[-1].date < self.calendar.calendar_list[-1]:
+                self.logger.critical("There is not enough to run analysis on {0}, latest date {1} is greater than {2}".format(ticker,self.tickers[ticker].data[-1].date, self.calendar.calendar_list[-1]))
+                exit(1)
+                
 
         input_date_index = self.calendar.calendar_hash[int(date)]
         calc_date_index = input_date_index + periods

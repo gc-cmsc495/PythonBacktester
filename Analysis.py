@@ -27,8 +27,6 @@ import math
 
 class Analysis(object):
     def __init__(self, trade_log_path):
-        print "Trade log is at " + trade_log_path
-        
         stats = {}
         tickers = {}
         mo_periods = []
@@ -53,13 +51,20 @@ class Analysis(object):
         self.stats = stats
         self.tickers = ['_all_'] + tickers.keys()
         self.mo_periods = mo_periods
-
+        self.int_mo_periods = [int(x) for x in self.mo_periods]
+        
     def get_tickers(self):
         return self.tickers
      
     def get_mo_periods(self):
         return self.mo_periods
-    
+        
+    def max_markout_period(self):
+        return max(self.int_mo_periods)
+
+    def min_markout_period(self):
+        return min(self.int_mo_periods)
+        
     def mean(self, mo_period, ticker):
         return self.stats[mo_period][ticker].Mean()
 

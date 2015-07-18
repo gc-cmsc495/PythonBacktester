@@ -23,16 +23,36 @@ from Config import Config
 
 class ReportWriter(object):
 
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.analysis = Analysis(config.get_value("SHAREABLE", "trade_log_file_name"))
         self.outfn = config.get_value("SHAREABLE", "stat_file_name")
-        pass
+        self.logger = logger
     
     def write(self):
+        report_text = ""
+        max_mo_length = len(str(self.analysis.max_markout_period()))
+        max_ticker_length = max([len(x) for x in self.analysis.get_tickers()]) + 2
+        out_cols = ["Markout Period", "Ticker", "Trade Count", "Return mu", "Return tstat", "Return sharpe"]
+        header = ["{item:>{item_width}}".format(item=col, item_width=len(col)) for col in out_cols]
+        report_text += "\t".join(header) + "\n"
         for mo_period in self.analysis.get_mo_periods():
             for ticker in self.analysis.get_tickers():
-                count = self.analysis.count(mo_period, ticker)
-                mean = self.analysis.mean(mo_period, ticker)
-                tstat= self.analysis.tstat(mo_period, ticker)
-                sharpe= self.analysis.sharpe(mo_period, ticker)
-                print "{0} {1} {2} {3} {4} {5}".format(mo_period, ticker, count, mean, tstat, sharpe)
+                out = {
+                    'Markout Period' : mo_period, 
+                    'Ticker' : ticker,
+                    'Trade Count' : self.analysis.count(mo_period, ticker),
+                    'Return mu' : "{:0.4f}".format(self.analysis.mean(mo_period, ticker)),
+                    'Return tstat' : "{:0.2f}".format(self.analysis.tstat(mo_period, ticker)),
+                    'Return sharpe' : "{:0.2f}".format(self.analysis.sharpe(mo_period, ticker))
+                }
+                output = []
+                for column in out_cols:
+                    if column in out:
+                        output.append( "{item:>{item_width}}".format(item=out[column], item_width=len(column)) )
+                report_text += "\t".join(output) + "\n"
+            report_text += "\n"
+        
+        with open(self.outfn, 'w') as f:
+            f.write(report_text)
+        
+        self.logger.info("Report written to " + self.outfn)
