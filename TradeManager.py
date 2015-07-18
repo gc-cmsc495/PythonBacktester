@@ -86,7 +86,6 @@ class TradeManager(object):
                             future_date = self.dm.date_by_offset(trade_date, mo_period)
                             overlap_key = ticker + str(mo_period)
                             if overlap_key in self.prevent_overlaps and trade_date <= self.prevent_overlaps[overlap_key]:
-                                print "Preventing overlap in {0}".format(overlap_key)
                                 continue
                             self.prevent_overlaps[overlap_key] = future_date
                             future_price = self.dm.get(ticker, future_date).close
