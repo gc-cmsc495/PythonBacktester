@@ -38,6 +38,7 @@ class TradeManager(object):
         self.start_date = config.get_value('PORTFOLIO','startdate')
         self.end_date = config.get_value('PORTFOLIO', 'enddate')
         self.name = self.config.get_value('PORTFOLIO', 'name')
+        self.prevent_overlaps = {}  ## used to disallow same ticker+markout overlapping
         
         ## Get the list of indicators from the config file, then start IndicatorLibrary
         self.list_of_user_indicators = [s.upper() for s in Util.str_to_list(config.get_value('STRATEGY', 'indicators'))]
@@ -83,7 +84,11 @@ class TradeManager(object):
                         today_price = self.dm.get(ticker, trade_date).close
                         for mo_period in self.list_of_markout_periods:
                             future_date = self.dm.date_by_offset(trade_date, mo_period)
-                            ## TODO prevent overlapping of dates so we have independent dates
+                            overlap_key = ticker + str(mo_period)
+                            if overlap_key in self.prevent_overlaps and trade_date <= self.prevent_overlaps[overlap_key]:
+                                print "Preventing overlap in {0}".format(overlap_key)
+                                continue
+                            self.prevent_overlaps[overlap_key] = future_date
                             future_price = self.dm.get(ticker, future_date).close
                             trade_log.write("{0},{1},{2},{3},{4},{5}\n".format(trade_date,ticker,mo_period,today_price,future_price,future_date))
         return True
