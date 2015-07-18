@@ -23,8 +23,9 @@ from Config import Config
 
 class ReportWriter(object):
 
-    def __init__(self, config, out_fn):
+    def __init__(self, config):
         self.analysis = Analysis(config.get_value("SHAREABLE", "trade_log_file_name"))
+        self.outfn = config.get_value("SHAREABLE", "stat_file_name")
         pass
     
     def write(self):

@@ -20,58 +20,122 @@
 #  5. Main application and Classes requests settings via Config class immutable getter methods
 #  6. Classes may set SHAREABLE values via put method.
 
+import sys,ConfigParser,os.path,Util
+
 class Config:
 
+    REQUIRED_SETTINGS = {}
+    REQUIRED_SETTINGS['PORTFOLIO'] = {}
+    REQUIRED_SETTINGS['STRATEGY'] = {}
+    
+    for field in ('tickers', 'startdate', 'enddate', 'name', 'log_file_ext', 'stat_file_ext', 'trade_log_file_ext'):
+        REQUIRED_SETTINGS['PORTFOLIO'][field] = 1
+    
+    for field in ('indicators','name','markout_periods'):
+        REQUIRED_SETTINGS['STRATEGY'][field] = 1
+        
+    DEFAULT_VALUES = {}
+    DEFAULT_VALUES['PORTFOLIO'] = {}
+    DEFAULT_VALUES['STRATEGY'] = {}
+    
+    DEFAULT_VALUES['PORTFOLIO']['name'] = 'pf'
+    DEFAULT_VALUES['PORTFOLIO']['log_file_ext'] = 'log_out.txt'
+    DEFAULT_VALUES['PORTFOLIO']['stat_file_ext'] = 'stats_out.txt'
+    DEFAULT_VALUES['PORTFOLIO']['trade_log_file_ext'] = 'trades_out.txt'
+    DEFAULT_VALUES['STRATEGY']['name'] = 'backtest'
+    DEFAULT_VALUES['STRATEGY']['markout_periods'] = '5,10,20'
+        
     def __init__(self, options, args):
         self.path = options.config
-        self.silent = options.silent
         self.args = args
+        
+        self.valid = True
+        self.error_messages = []
 
         self.config = {}
+        self.config['BACKTEST.silent'] = options.silent
         
-        ## TODO
-        ## Read and parse the file and store in dictionary
+        self.__parse()
+        if args:
+            if len(args) == 1:
+                self.config['PORTFOLIO.startdate'], self.config['PORTFOLIO.enddate'] = args[0], args[0]
+            else:
+                self.config['PORTFOLIO.startdate'], self.config['PORTFOLIO.enddate'] = args[0], args[1]
+
+        self.__inject_default_values()
+        self.validate()
         
-    def value_beta(self, category,name, default=None):
-        """"Function for beta, return static values"""
-        
-        if category == 'PORTFOLIO':
-            if name == 'name': return 'large_cap'
-            if name == 'tickers': return ['AAPL','INTC']
-            if name == 'startdate': return 20150101
-            if name == 'enddate': return 20150131
-            if name == 'log_file_ext': return 'log_out.txt'
-            if name == 'stat_file_ext': return 'stats_out.txt'
-            if name == 'trade_log_file_ext': return 'trades_out.txt'
-        elif category == 'STRATEGY':
-            if name == 'name': return 'high_volume_up_days'
-            if name == 'markout_periods': return [5,10,20]
-            if name == 'period_length': return 'daily'
-            if name == 'indicators': return ['HIGH_VOLUME', 'CLOSE_HIGHER_THAN_OPEN']
-        elif category == 'BACKTEST':
-            if name == 'silent': return self.silent
-        elif category == 'SHAREABLE':
-            return self.config['SHAREABLE' + '.' + name]  ## TODO check for existence
-        
-        return default
         
     def get_value(self, category, name, default=None):
-        val = self.value_beta(category,name)
+        #val = self.value_beta(category,name)
+        name = category + '.' + name
+        if name in self.config:
+            return self.config[name]
+        else:
+            print >>sys.stderr, "No config value for " + name
+            sys.exit(1)
         return val
         
     def put(self, name, value):
         self.config['SHAREABLE' + '.' + name] = value
         
-    def parse(self):
-        ##TODO
-        ## This should be a private function (if possible in python)
-        ## that parses the config file.  There may be a core module available to help
-        pass;
-     
+    def __parse(self):
+        if os.path.isfile(self.path):
+            
+            config = ConfigParser.RawConfigParser()
+            config.read(self.path)
+            
+            #iterate the properties
+            for each_section in config.sections():
+                for (key, val) in config.items(each_section):
+                    self.config[each_section + "." + key] = self.__remove_comment(val)
+        else:
+            print >>sys.stderr, "File not found:" + self.path
+            sys.exit(1)        
+    
+    #private method, remove comment
+    def __remove_comment(self, msg):
+        comment_pos = msg.find('#')
+        if comment_pos != -1:
+            return msg[:comment_pos]
+        else:
+            return msg
+
+    def __inject_default_values(self):
+        for section in Config.DEFAULT_VALUES:
+            for field in Config.DEFAULT_VALUES[section]:        
+                if section+'.'+field not in self.config:
+                    self.config[section+'.'+field] = Config.DEFAULT_VALUES[section][field]
+            
     def validate (self):
-        ## TODO
-        ## A private function that validates the that minimum parameters were provided
-        ## and that the values are correct
-        pass;
-        
+        """ Ensure that all required fields have values"""
+        errors = []
+        for section in Config.REQUIRED_SETTINGS:
+            for field in Config.REQUIRED_SETTINGS[section]:
+                if section +'.'+field not in self.config:
+                    errors.append(section +'.'+ field + "is a required configuration setting")
+        if errors:
+            print >>sys.stderr, "\n".join(errors)
+            sys.exit(1)
+
+        try:
+            start_date = int(self.config['PORTFOLIO.startdate'])
+            end_date = int(self.config['PORTFOLIO.enddate'])
+            if (start_date > end_date):
+                print >>sys.stderr, "{0} > {1}".format(start_date, end_date)
+                sys.exit(1)
+            if (start_date < Util.DEFAULT_START_DATE):
+                print >>sys.stderr, "Start date {0} > default date {1}".format(start_date, Util.DEFAULT_START_DATE)
+                sys.exit(1)
+                
+            if (end_date > Util.DEFAULT_END_DATE):
+                print >>sys.stderr, "End date {0} > default date {1}".format(end_date, Util.DEFAULT_END_DATE)
+                sys.exit(1)
+                
+            self.config['PORTFOLIO.startdate'] = start_date
+            self.config['PORTFOLIO.enddate'] = end_date
+        except:
+            print >>sys.stderr, "Invalid date when trying start and end dates"
+            sys.exit(1)
+  
         

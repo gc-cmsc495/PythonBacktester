@@ -17,4 +17,8 @@ def get_header_and_columns(filehandle, delim=' ', strip='', chomp=True):
     for idx, val in enumerate(columns):
         cols[val] = idx
     return header, cols
+ 
+def str_to_list(str):
+    return [x.strip() for x in str.split(',')]
     
+ 

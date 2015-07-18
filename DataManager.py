@@ -49,16 +49,21 @@ class HistoricalQuotes(object):
         url_string += "&a={0}&b={1}&c={2}".format(start_month,start_day,start_year)
         url_string += "&d={0}&e={1}&f={2}".format(end_month,end_day,end_year)
         
-        csv = urllib.urlopen(url_string).readlines()
-        csv.reverse()
-        for bar in xrange(0,len(csv)-1):
-            ds,open,high,low,close,volume,adjc = csv[bar].rstrip().split(',')
-            open,high,low,close,adjc = [float(x) for x in [open,high,low,close,adjc]]
-            if close != adjc:
-                factor = adjc/close
-                open,high,low,close = [x*factor for x in [open,high,low,close]]
-            ds = int(ds.translate(None, '-'))
-            self.data.append(Quote(ds, open, high, low, close, volume))
+        try:
+            url = urllib.urlopen(url_string)
+            if url.getcode() == 200:
+                csv = url.readlines()
+                csv.reverse()
+                for bar in xrange(0,len(csv)-1):
+                    ds,open,high,low,close,volume,adjc = csv[bar].rstrip().split(',')
+                    open,high,low,close,adjc = [float(x) for x in [open,high,low,close,adjc]]
+                    if close != adjc:
+                        factor = adjc/close
+                        open,high,low,close = [x*factor for x in [open,high,low,close]]
+                    ds = int(ds.translate(None, '-'))
+                    self.data.append(Quote(ds, open, high, low, close, volume))
+        except:
+            pass ## just leave data empty
 
 class TradeCalendar(object):
     
@@ -78,6 +83,10 @@ class TradeCalendar(object):
         self.max_date           = 0
 
         cal = HistoricalQuotes("GE", Util.DEFAULT_START_DATE, Util.DEFAULT_END_DATE)
+        if not cal.data:
+            self.logger.critical("Was not able to fetch trading calendar from Yahoo!")
+            exit(1)
+            
         i=0
         for quote in cal.data:
             date = quote.date
@@ -88,19 +97,19 @@ class TradeCalendar(object):
                     break
             i += 1
         
-        if int(start_date_index) > int(end_date_index):
-            raise RuntimeError('Invalid start date Index: start date index is greater than end date index: start date maybe greater than end date')    
-
         if int(start_date_index == -1):
-            raise RuntimeError('start date index should not be -1')
+            self.logger.critical("STRANGE: I could not find startdate {0} in trade calendar".format(start_date))
+            exit(1)
         if int(end_date_index == -1):
-            raise RuntimeError('end date index should not be -1')
+            self.logger.critical("enddate {0} is beyond trading calendar".format(end_date))
+            exit(1)
     
-        
         if start_date_index - pre_buffer < 0: 
-            raise IndexError("out of bounds: start_date_index-pre_buffer is prior to the beginning of the list")
+            self.logger.critical("To load indicators, I need {0} periods before {1}, which I don't have in the trading calendar.".format(pre_buffer, start_date))
+            exit(1)
         if end_date_index + post_buffer >= len(cal.data): 
-            raise IndexError("out of bounds: end_index+post_buffer is prior to the beginning of the list")
+            self.logger.critical("To perform markouts, I need {0} periods after {1}, which I don't have in the trading calendar".format(post_buffer, start_date))
+            exit(1)
         
         k=0
         for i in range(start_date_index - pre_buffer, end_date_index + post_buffer):
@@ -121,9 +130,6 @@ class DataManager(object):
 
 
     def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
-        
-        if int(start_date) > int(end_date):
-            raise RuntimeError('Invalid start date: start date is greater than end date')
 
         self.logger = logger
         self.calendar = TradeCalendar(logger, start_date, end_date, pre_buffer, post_buffer)
@@ -141,21 +147,26 @@ class DataManager(object):
         
     def get(self, ticker, date, periods=0):
         if (date > self.calendar.max_date): 
-            raise RuntimeError('Invalid date: date is greater than max date of ' + self.calendar.max_date) 
+            self.logger.critical("In DataManager.get() date {0} is greater than max date {1}".format(date, self.calendar.max_date))
+            exit(1)
         if (date < self.calendar.min_date):
-            raise RuntimeError('Invalid date: date is less than min date of ' + self.calendar.min_date) 
+            self.logger.critical("In DataManager.get() date {0} is less than min date {1}".format(date, self.calendar.min_date))
+            exit(1)
 
         if (not ticker in self.tickers):
             self.logger.info("Fetching historical data from yahoo for:" + ticker)
             self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar.calendar_list[0], self.calendar.calendar_list[-1])
+            if not self.tickers[ticker].data:
+                self.logger.critical("DataManager could not get Yahoo quotes for ticker {0}".format(ticker))
+                exit(1)
+            
 
         input_date_index = self.calendar.calendar_hash[int(date)]
         calc_date_index = input_date_index + periods
         
-        if calc_date_index > len(self.calendar.calendar_list):
-            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the last index) in the calendar_list")
-        if calc_date_index < 0: 
-            raise IndexError("out of bounds: calculated date index (calc_date_index) is outside the range(beyond the first index) in the calendar_list")
+        if calc_date_index > len(self.calendar.calendar_list) or calc_date_index < 0:
+            self.logger.critical("In DataManager.get() date {0} plus the number of periods requested {1} exceeds the trading calendar".format(date, periods))
+            exit(1)
         
         if (input_date_index > calc_date_index):
             return self.tickers[ticker].data[calc_date_index:input_date_index+1]

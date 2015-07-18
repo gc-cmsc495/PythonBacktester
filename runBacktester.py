@@ -25,13 +25,11 @@ from ReportWriter import ReportWriter
 ##   Owens, Chris
 ##
 
-
-log_file_ext   = 'log_out.txt'
-stat_file_ext  = 'stats_out.txt'
-stat_file_name = ''
-
 def setup_backtest():
-    """"This function gets all the information from the command line and ini file """
+    """"
+    This function gets all the information from the command line and ini file 
+    Basic Config errors go to STDERR and not the log file
+    """
 
     from optparse import OptionParser
     p = OptionParser(usage='usage: %prog [options] [START_DATE] [END_DATE]')
@@ -47,10 +45,10 @@ def setup_backtest():
     
     start_date = config.get_value('PORTFOLIO', 'startdate')
     end_date = config.get_value('PORTFOLIO', 'enddate')
-    log_file_name = ".".join([str(start_date), str(end_date), config.get_value('PORTFOLIO','log_file_ext')])
+    this_name = ".".join([config.get_value('PORTFOLIO','name'),  config.get_value('STRATEGY','name')])
     
-    global stat_file_name
-    stat_file_name = ".".join([str(start_date), str(end_date), config.get_value('PORTFOLIO','stat_file_ext')])
+    log_file_name = ".".join([str(start_date), str(end_date), this_name , config.get_value('PORTFOLIO','log_file_ext')])
+    config.put('stat_file_name', ".".join([str(start_date), str(end_date), this_name, config.get_value('PORTFOLIO','stat_file_ext')]))
     
     logging.basicConfig(filename=log_file_name, filemode='w') ## file will be overwritten each time
     logger = logging.getLogger('backtester')
@@ -66,17 +64,12 @@ def setup_backtest():
 def runBacktest():
     config, logger = setup_backtest()
     tm = TradeManager(config, logger)
-    logger.info('Hello World')
     if tm.run():
-        rw = ReportWriter(config, stat_file_name)
+        rw = ReportWriter(config)
         rw.write()
-        
-
-    
 
 def main():
     return runBacktest()
     
-
 if __name__ == '__main__':
     main()
