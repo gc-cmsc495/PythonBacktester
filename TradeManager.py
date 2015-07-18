@@ -57,7 +57,9 @@ class TradeManager(object):
         max_markout_periods = max(self.list_of_markout_periods)
         
         max_historical_periods = self.strategy.periods_required()
-        self.dm = DataManager(logger, self.start_date,self.end_date,max_markout_periods,max_historical_periods)
+        
+      
+        self.dm = DataManager(logger, self.start_date,self.end_date,max_historical_periods,max_markout_periods)
         self.__trade_log_fn()
         
     def __trade_log_fn(self):

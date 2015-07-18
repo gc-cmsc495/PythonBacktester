@@ -93,7 +93,7 @@ class TradeCalendar(object):
             if (start_date_index == -1 and date >= start_date): start_date_index = i
             if (start_date_index != -1):
                 if date > end_date: 
-                    end_date_index = i-1
+                    end_date_index = i
                     break
             i += 1
         
@@ -108,7 +108,7 @@ class TradeCalendar(object):
             self.logger.critical("To load indicators, I need {0} periods before {1}, which I don't have in the trading calendar.".format(pre_buffer, start_date))
             exit(1)
         if end_date_index + post_buffer >= len(cal.data): 
-            self.logger.critical("To perform markouts, I need {0} periods after {1}, which I don't have in the trading calendar".format(post_buffer, start_date))
+            self.logger.critical("To perform markouts, I need {0} periods after {1}, which I don't have in the trading calendar".format(post_buffer, end_date))
             exit(1)
         
         k=0
@@ -142,7 +142,15 @@ class DataManager(object):
 
     def date_by_offset(self, anchor, offset):
         index = self.calendar.calendar_hash[anchor]
-        return self.calendar.calendar_list[index + offset]
+        value = 0
+        try:
+            value = self.calendar.calendar_list[index + offset]
+        except:
+            print "{0} {1} {2}".format(index, self.calendar.calendar_list[index], offset)
+            for i, val in enumerate(self.calendar.calendar_list):
+                print "{0} {1}".format(i, val)
+            exit(1)
+        return value
 
         
     def get(self, ticker, date, periods=0):
@@ -154,7 +162,7 @@ class DataManager(object):
             exit(1)
 
         if (not ticker in self.tickers):
-            self.logger.info("Fetching historical data from yahoo for:" + ticker)
+            self.logger.info("Fetching historical data from yahoo for: {0}".format(ticker))
             self.tickers[ticker] = HistoricalQuotes(ticker, self.calendar.calendar_list[0], self.calendar.calendar_list[-1])
             if not self.tickers[ticker].data:
                 self.logger.critical("DataManager could not get Yahoo quotes for ticker {0}".format(ticker))
