@@ -93,7 +93,7 @@ class TradeCalendar(object):
             if (start_date_index == -1 and date >= start_date): start_date_index = i
             if (start_date_index != -1):
                 if date > end_date: 
-                    end_date_index = i
+                    end_date_index = i-1
                     break
             i += 1
         
@@ -112,7 +112,7 @@ class TradeCalendar(object):
             exit(1)
         
         k=0
-        for i in range(start_date_index - pre_buffer, end_date_index + post_buffer):
+        for i in range(start_date_index - pre_buffer, end_date_index + post_buffer + 1):
             date = cal.data[i].date
             self.calendar_list.append(date);
             self.calendar_hash[date] = k
@@ -149,6 +149,7 @@ class DataManager(object):
             print "{0} {1} {2}".format(index, self.calendar.calendar_list[index], offset)
             for i, val in enumerate(self.calendar.calendar_list):
                 print "{0} {1}".format(i, val)
+            print "A DATE ERROR HAS OCCURED, WHICH SHOULD NOT!  The program must terminate."
             exit(1)
         return value
 
