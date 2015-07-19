@@ -1,6 +1,10 @@
-## Calculate mean, variance and standard deviation
+## This clas is used by the Analysis Class to  calculate mean, min, max, sum 
+## variance and standard deviation
 ## from a data stream (as values appear).
 ## http://www.johndcook.com/standard_deviation.html
+##
+## Class Author: 
+##
 
 import math
 

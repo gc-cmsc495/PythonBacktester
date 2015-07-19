@@ -31,6 +31,13 @@ import Util, sys, pprint
 
 class TradeManager(object):
 
+##
+## This is the entry point for TradeManager
+## TradeManager uses the IndicatorLibrary and the indicators that were passed in through the config file to 
+## determine if any of the indictors return true.
+## It then calls the DataManager with the start and end dates, historical data period and mark out period
+## to collect price information for a given symbol.
+
     def __init__(self, config, logger):
         self.config = config
         self.logger = logger
@@ -68,7 +75,9 @@ class TradeManager(object):
         self.trade_log_name = ".".join([str(self.start_date),str(self.end_date),self.name,strategy_name,ext])
         print self.trade_log_name
         self.config.put('trade_log_file_name', self.trade_log_name)
-        
+    ##
+    ## This method calls DataManager to get the future date and price for each markout period for a given symbol
+    ##
     def run(self):
         
         with open(self.trade_log_name, 'w') as trade_log:

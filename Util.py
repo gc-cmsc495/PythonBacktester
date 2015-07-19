@@ -1,3 +1,7 @@
+##
+## Class Author: Garrett Casey
+##
+## This is a utility class to be used by the other classes in the BackTester program.
 
 DEFAULT_START_DATE, DEFAULT_END_DATE = 19800101, 20991231
 
