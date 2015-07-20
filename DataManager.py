@@ -7,7 +7,7 @@
 # or date. Finally, due to the nature of the data, this class will
 # provide a trade-date calendar interface.
 
-# Class Author: Nancy Isaac
+# Class Author: Nancy Isaac/Garrett Casey
 
 # Use Case:
 #   1. Main application instantiates the DataManager
@@ -32,6 +32,10 @@ class Quote(object):
     def __init__(self, date, open, high, low, close, volume):
         self.date, self.open, self.high, self.low, self.close, self.volume = date, float(open), float(high), float(low), float(close), int(volume)
 
+##
+## HistoricalQuotes class:
+## Calls yahoo finance API to get open, high, low, close and adjusted close values for a symbol given a start and end date.
+##
 class HistoricalQuotes(object):
 
     def __init__(self, symbol, start_date, end_date):
@@ -65,6 +69,11 @@ class HistoricalQuotes(object):
         except:
             pass ## just leave data empty
 
+##
+## TradeCalender class:
+## Given the start date, end date, historical period, and markout period,
+## get the actual start date and end date for running the backtester program.
+##
 class TradeCalendar(object):
     
     def __init__(self, logger, start_date, end_date, pre_buffer, post_buffer):
@@ -128,13 +137,16 @@ class TradeCalendar(object):
 
 class DataManager(object):  
 
-
+## This is the entry point for DataManager.
+## This calls TradeCalendar to set the actual start and end dates.
+##
     def __init__(self,logger,start_date,end_date,pre_buffer=20, post_buffer=20):
 
         self.logger = logger
         self.calendar = TradeCalendar(logger, start_date, end_date, pre_buffer, post_buffer)
         self.tickers = {} ## Dictionary to hold quotes
-    
+ ##
+ ## Given the actual start and end dates, get the trading calendar   
     def trading_dates(self, asHash = False):
         start_date_index = self.calendar.calendar_hash[self.calendar.actual_start_date]
         end_date_index   = self.calendar.calendar_hash[self.calendar.actual_end_date]
@@ -153,7 +165,8 @@ class DataManager(object):
             exit(1)
         return value
 
-        
+    ##
+    ## Get the Hitorical Quotes given the trading calendar.    
     def get(self, ticker, date, periods=0):
         if (date > self.calendar.max_date): 
             self.logger.critical("In DataManager.get() date {0} is greater than max date {1}".format(date, self.calendar.max_date))

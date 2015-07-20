@@ -11,11 +11,20 @@ from ReportWriter import ReportWriter
 ## Description:
 ## A Python Stock Back-tester
 ##
+## This is the entry point for PythonBacktester.  This program is run from 
+## the command line only.  
 ## The user must supply the -c,--config option, which is the location of
 ## their configuration file.  
 ##
 ## The user may also turn on the silent mode by passing --silent
 ##
+## To run the program, one must pass the confile file, start date and
+## end date to collect the information.
+## details of the confile file are in config.py
+##  python ./runBacktester.py --config <filename.ini> <start_dt> <end_dt>
+## example:
+##   python ./runBacktester.py --config example.ini 20150101 20150515
+
 ## Team Members:
 ## 
 ##   Baker, Pierce
@@ -28,7 +37,9 @@ from ReportWriter import ReportWriter
 def setup_backtest():
     """"
     This function gets all the information from the command line and ini file 
-    Basic Config errors go to STDERR and not the log file
+    Basic Config errors go to STDERR and not the log file.
+    This also sets up the log file.  A separate log file will be created each time 
+    program is executed.
     """
 
     from optparse import OptionParser
@@ -60,7 +71,11 @@ def setup_backtest():
     
     return config, logger
 
-    
+##
+## this is called by the main routine.
+## This method calls setup_backtest to parse the inputs and calls the config
+## class with the input parameters to get the parameters needed for TradeManager and ReportWriter.
+##
 def runBacktest():
     config, logger = setup_backtest()
     tm = TradeManager(config, logger)
@@ -68,6 +83,9 @@ def runBacktest():
         rw = ReportWriter(config, logger)
         rw.write()
 
+##
+## main routing for the program
+##
 def main():
     return runBacktest()
     

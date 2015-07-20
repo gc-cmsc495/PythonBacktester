@@ -32,7 +32,8 @@ class Config:
     
     for field in ('indicators','name','markout_periods'):
         REQUIRED_SETTINGS['STRATEGY'][field] = 1
-        
+    
+    ## setup default values for output files    
     DEFAULT_VALUES = {}
     DEFAULT_VALUES['PORTFOLIO'] = {}
     DEFAULT_VALUES['STRATEGY'] = {}
@@ -43,7 +44,12 @@ class Config:
     DEFAULT_VALUES['PORTFOLIO']['trade_log_file_ext'] = 'trades_out.txt'
     DEFAULT_VALUES['STRATEGY']['name'] = 'backtest'
     DEFAULT_VALUES['STRATEGY']['markout_periods'] = '5,10,20'
-        
+     
+    ##
+    ## entry point for config.py
+    ## silent option is used to quiet the console output
+    ## get the input values from runBacktester.py for config file, start date and end date.
+    ##
     def __init__(self, options, args):
         self.path = options.config
         self.args = args
@@ -64,9 +70,10 @@ class Config:
         self.__inject_default_values()
         self.validate()
         
-        
+    ##
+    ## get the category name from the config file
+    ##    
     def get_value(self, category, name, default=None):
-        #val = self.value_beta(category,name)
         name = category + '.' + name
         if name in self.config:
             return self.config[name]
@@ -77,7 +84,10 @@ class Config:
         
     def put(self, name, value):
         self.config['SHAREABLE' + '.' + name] = value
-        
+    
+    ##
+    ## parse the config file and store them as part of this class
+    ##      
     def __parse(self):
         if os.path.isfile(self.path):
             
@@ -100,12 +110,20 @@ class Config:
         else:
             return msg
 
+    ##
+    ## for any fields not in the config file, add the default values 
+    ##
     def __inject_default_values(self):
         for section in Config.DEFAULT_VALUES:
             for field in Config.DEFAULT_VALUES[section]:        
                 if section+'.'+field not in self.config:
                     self.config[section+'.'+field] = Config.DEFAULT_VALUES[section][field]
-            
+    
+    ##
+    ## validate the contents of the config file
+    ## return erro if any required fields are missing in the file
+    ## return error if any of the fields have invalid values.
+    ##        
     def validate (self):
         """ Ensure that all required fields have values"""
         errors = []

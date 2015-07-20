@@ -34,10 +34,16 @@ START_DATE.END_DATE.stats_out.txt
 Where START_DATE and END_DATE are supplied by the user and 
 define the sample period.
 
+Installing the Program
+######################
+First the user must have installed the latest version of Python on their computer.  A copy of python can be located here: https: //www.python.org/downloads/
+
+If you haven't already, download the entire repository from github: https://github.com/gc-cmsc495/PythonBacktester
+
 Running the Program
 ###################
 
-From the command line type:
+Once Python has been installed and the repository is located on your computer, navigate to the directory where you have installed the program and type the following in a terminal command line: 
 
 python runBacktester.py --help
 
@@ -50,6 +56,8 @@ Where config_file.ini is the name (and path) to the configuration file,
 20150101 is the start date (January 01, 2015) and 20150331 is the 
 ending date (February 31, 2015).  Note that the dates simply define
 the lower and upper bounds of the sample period (they don't have to exist).
+
+
 
 
 
