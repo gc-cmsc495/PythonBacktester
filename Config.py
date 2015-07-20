@@ -12,10 +12,9 @@
 
 # Use Case:
 #  1. user provides main application with command-line arguments
-#  2. main application instantiates the Config class as passes command-line arguments
-#  3. Config class parses command-line arguments
-#    3.a. Opens configuration file and parses
-#    3.b. Verifies correctness of parameters and settings
+#  2. main application parses command line options and passes to Config class
+#  3  Opens configuration file and parses
+#     3.a. Verifies correctness of parameters and settings
 #  4. Returns OK status or croaks with error
 #  5. Main application and Classes requests settings via Config class immutable getter methods
 #  6. Classes may set SHAREABLE values via put method.
