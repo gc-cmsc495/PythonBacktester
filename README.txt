@@ -57,6 +57,8 @@ Where config_file.ini is the name (and path) to the configuration file,
 ending date (February 31, 2015).  Note that the dates simply define
 the lower and upper bounds of the sample period (they don't have to exist).
 
+The queried ticker can also be changed withon the configuration file.
+
 
 
 
